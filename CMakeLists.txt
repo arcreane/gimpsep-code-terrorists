@@ -28,6 +28,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src # Include top-level src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cli # Include cli subdirectory
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core # Include core subdirectory
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/advanced # Include advanced subdirectory
     ${OpenCV_INCLUDE_DIRS}
     )
 
@@ -41,6 +42,7 @@ set(APP_SOURCES
     src/core/brightness.cpp
     src/core/stitching.cpp
     src/core/canny.cpp
+    src/advanced/video_processing.cpp
     # Add other .cpp files here as they are created
 )
 

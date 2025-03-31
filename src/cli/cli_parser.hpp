@@ -48,9 +48,9 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
 
         options.add_options()
             ("h,help", "Display this help message")
-            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny)", cxxopts::value<std::string>())
-            ("i,input", "Input image file path(s). Multiple allowed for stitch.", cxxopts::value<std::vector<std::string>>())
-            ("o,output", "Output image file path", cxxopts::value<std::string>())
+            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray)", cxxopts::value<std::string>())
+            ("i,input", "Input image/video file path(s). Multiple allowed for stitch.", cxxopts::value<std::vector<std::string>>())
+            ("o,output", "Output image/video file path", cxxopts::value<std::string>())
             // Operation-specific options
             ("k,kernel_size", "Kernel size for dilation/erosion (positive odd integer)", cxxopts::value<int>()->default_value("3"))
             ("f,factor", "Resize factor (e.g., 1.5 for 150%, 0.5 for 50%)", cxxopts::value<double>())
@@ -140,6 +140,10 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
             throw std::runtime_error("Stitch operation requires at least two input images.");
         }
 
+        // Video specific validation (expects exactly one input)
+        if (args.operation == "video-gray" && args.input_files.size() != 1) {
+            throw std::runtime_error("Video operations require exactly one input video file.");
+        }
 
     } catch (const cxxopts::exceptions::exception& e) {
         std::cerr << "Error parsing options: " << e.what() << std::endl;

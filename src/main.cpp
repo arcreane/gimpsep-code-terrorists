@@ -17,6 +17,9 @@
 #include "core/canny.hpp"
 #include "core/stitching.hpp"
 
+// Include advanced function headers
+#include "advanced/video_processing.hpp"
+
 /**
  * @brief Main entry point for the AI_SLOP application.
  *
@@ -64,7 +67,7 @@ int main(int argc, char** argv) {
 
         // --- Image Loading ---
         cv::Mat input_image; // Keep for single-image operations
-        std::vector<cv::Mat> input_images_stitch; // Keep vector of paths for stitcher
+        // std::vector<cv::Mat> input_images_stitch; // No longer needed as stitch loads internally
 
         if (args.operation == "stitch") {
             // Stitching loads images internally from paths
@@ -74,8 +77,15 @@ int main(int argc, char** argv) {
              }
              std::cout << "Stitching operation selected. Image loading will occur in the stitch function." << std::endl;
         }
+        else if (args.operation == "video-gray") {
+            // Video processing also loads internally from path
+            if (args.input_files.size() != 1) { // Validation already in parser, but defensive check
+                 throw std::runtime_error("Video operations require exactly one input video path provided via -i.");
+             }
+            std::cout << "Video operation ('" << args.operation << "') selected. Input video: " << args.input_files[0] << std::endl;
+        }
         else if (args.input_files.size() == 1) {
-            // Load single image for non-stitch operations
+            // Load single image for other non-stitch, non-video operations
             input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR);
             if (input_image.empty()) {
                 throw std::runtime_error("Failed to load input image: " + args.input_files[0]);
@@ -151,14 +161,28 @@ int main(int argc, char** argv) {
                                               args.canny_threshold2.value());
             operation_handled = true;
         }
+        else if (args.operation == "video-gray") {
+            std::cout << "Processing video to grayscale..." << std::endl;
+            bool success = process_video_grayscale(args.input_files[0], args.output_file);
+            if (success) {
+                 std::cout << "Video processing completed successfully." << std::endl;
+                 // Note: operation_handled remains false here because saving is done *inside* process_video_grayscale
+                 // The generic saving block later will be skipped.
+            } else {
+                 // process_video_grayscale throws on error, so this might not be reached unless it returns false
+                 throw std::runtime_error("Video processing failed for an unknown reason.");
+            }
+        }
         // --- Add other operations here later ---
         else {
-            // Unknown operation (stitch case handled within the 'else if' block)
+            // Unknown operation (stitch and video cases handled within their 'else if' blocks)
             throw std::runtime_error("Unknown or unimplemented operation: " + args.operation);
         }
 
         // --- Image Saving ---
-        if (operation_handled) {
+        // This block now only runs for operations that produce a single output_image Mat
+        // Video processing handles its own saving internally.
+        if (operation_handled && !output_image.empty()) {
             if (!cv::imwrite(args.output_file, output_image)) {
                 throw std::runtime_error("Failed to save output image to: " + args.output_file);
             }
