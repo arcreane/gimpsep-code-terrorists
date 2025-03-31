@@ -23,12 +23,18 @@ endif()
 
 message(STATUS "OpenCV libraries found: ${OpenCV_LIBS}")
 
-# Include directories (for OpenCV headers)
-include_directories(${OpenCV_INCLUDE_DIRS})
+# Include directories (for OpenCV headers and our source headers)
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src # Include top-level src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/cli # Include cli subdirectory
+    # Add other subdirectories like src/core later
+    ${OpenCV_INCLUDE_DIRS}
+    )
 
 # --- Executable Definition ---
 
 # Add the executable target
+# Note: If we add .cpp files in subdirs, we'll need to list them here or use globbing
 add_executable(${PROJECT_NAME} src/main.cpp)
 
 # Link the executable against the OpenCV libraries
