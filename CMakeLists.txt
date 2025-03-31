@@ -40,6 +40,7 @@ set(APP_SOURCES
     src/core/resize.cpp
     src/core/brightness.cpp
     src/core/stitching.cpp
+    src/core/canny.cpp
     # Add other .cpp files here as they are created
 )
 

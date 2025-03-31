@@ -14,7 +14,7 @@
 #include "core/morphology.hpp"
 #include "core/resize.hpp"
 #include "core/brightness.hpp"
-// #include "core/canny.hpp" // Add later
+#include "core/canny.hpp"
 #include "core/stitching.hpp"
 
 /**
@@ -139,8 +139,19 @@ int main(int argc, char** argv) {
                 throw std::runtime_error("Stitching failed: " + status_msg);
             }
         }
+        else if (args.operation == "canny") {
+            if (!args.canny_threshold1.has_value() || !args.canny_threshold2.has_value()) {
+                // Parser provides defaults, so this check might be redundant unless defaults are removed
+                throw std::runtime_error("Canny thresholds (-t1, -t2) are required for canny operation.");
+            }
+            std::cout << "Performing Canny edge detection..." << std::endl;
+            // Using default aperture size (3) and L1 gradient
+            output_image = detect_edges_canny(input_image, 
+                                              args.canny_threshold1.value(), 
+                                              args.canny_threshold2.value());
+            operation_handled = true;
+        }
         // --- Add other operations here later ---
-        // else if (args.operation == "canny") { ... }
         else {
             // Unknown operation (stitch case handled within the 'else if' block)
             throw std::runtime_error("Unknown or unimplemented operation: " + args.operation);
