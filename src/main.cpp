@@ -20,6 +20,7 @@
 // Include advanced function headers
 #include "advanced/video_processing.hpp"
 #include "advanced/face_detection.hpp"
+#include "advanced/object_detection.hpp"
 
 /**
  * @brief Main entry point for the AI_SLOP application.
@@ -91,6 +92,18 @@ int main(int argc, char** argv) {
                  throw std::runtime_error("Background subtraction requires exactly one input video path.");
              }
             std::cout << "Background subtraction ('" << args.operation << "') selected. Input video: " << args.input_files[0] << std::endl;
+        }
+        else if (args.operation == "detect-objects") {
+             // Standard single image input expected
+             if (args.input_files.size() != 1) {
+                 throw std::runtime_error("Object detection requires exactly one input image path.");
+             }
+             // Load single image
+             input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR);
+             if (input_image.empty()) {
+                 throw std::runtime_error("Failed to load input image: " + args.input_files[0]);
+             }
+             std::cout << "Input image loaded: " << args.input_files[0] << std::endl;
         }
         else if (args.operation == "detect-faces") {
             // Standard single image input expected
@@ -212,6 +225,20 @@ int main(int argc, char** argv) {
             } else {
                  throw std::runtime_error("Background subtraction failed for an unknown reason.");
             }
+        }
+        else if (args.operation == "detect-objects") {
+             if (!args.yolo_config || !args.yolo_weights || !args.yolo_names || !args.yolo_conf || !args.yolo_nms) {
+                  // Should be caught by parser, but defensive check
+                  throw std::runtime_error("Missing required arguments for detect-objects (check --yolo_cfg, --yolo_weights, --yolo_names)");
+             }
+             std::cout << "Performing object detection using YOLO..." << std::endl;
+             output_image = detect_objects_yolo(input_image, 
+                                               args.yolo_config.value(),
+                                               args.yolo_weights.value(),
+                                               args.yolo_names.value(),
+                                               args.yolo_conf.value(),
+                                               args.yolo_nms.value());
+             operation_handled = true; // Save the output image with detections
         }
         // --- Add other operations here later ---
         else {

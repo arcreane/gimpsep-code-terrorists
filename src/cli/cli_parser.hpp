@@ -32,6 +32,11 @@ struct ParsedArguments {
 
     // --- Advanced Feature Args ---
     std::optional<std::string> cascade_file; // Path to Haar cascade XML for face detection
+    std::optional<std::string> yolo_config;  // Path to YOLO config file
+    std::optional<std::string> yolo_weights; // Path to YOLO weights file
+    std::optional<std::string> yolo_names;   // Path to YOLO class names file
+    std::optional<float> yolo_conf;      // YOLO confidence threshold
+    std::optional<float> yolo_nms;       // YOLO NMS threshold
 
     // Potential future parameters can be added here
 };
@@ -51,7 +56,7 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
 
         options.add_options()
             ("h,help", "Display this help message")
-            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces, bg-subtract)", cxxopts::value<std::string>())
+            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces, bg-subtract, detect-objects)", cxxopts::value<std::string>())
             ("i,input", "Input image/video file path(s). Multiple allowed for stitch.", cxxopts::value<std::vector<std::string>>())
             ("o,output", "Output image/video file path", cxxopts::value<std::string>())
             // Core operation-specific options
@@ -61,7 +66,13 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
             ("t1,threshold1", "First threshold for the Canny edge detector hysteresis procedure", cxxopts::value<double>()->default_value("100.0"))
             ("t2,threshold2", "Second threshold for the Canny edge detector hysteresis procedure", cxxopts::value<double>()->default_value("200.0"))
             // Advanced operation-specific options
-            ("c,cascade", "Path to the cascade classifier XML file (for detect-faces)", cxxopts::value<std::string>());
+            ("c,cascade", "Path to the cascade classifier XML file (for detect-faces)", cxxopts::value<std::string>())
+            // YOLO Object Detection options
+            ("yolo_cfg", "Path to YOLO .cfg file (for detect-objects)", cxxopts::value<std::string>())
+            ("yolo_weights", "Path to YOLO .weights file (for detect-objects)", cxxopts::value<std::string>())
+            ("yolo_names", "Path to YOLO .names file (for detect-objects)", cxxopts::value<std::string>())
+            ("conf", "Confidence threshold (for detect-objects)", cxxopts::value<float>()->default_value("0.5"))
+            ("nms", "NMS threshold (for detect-objects)", cxxopts::value<float>()->default_value("0.4"));
 
         // Allow input files to be positional for convenience (e.g., ./AI_SLOP --op stitch img1.jpg img2.jpg -o out.jpg)
         // options.parse_positional("input"); // Let's stick to explicit -i for now for clarity
@@ -162,6 +173,25 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
             }
             args.cascade_file = result["cascade"].as<std::string>();
             // Could add validation here to check if the file string is non-empty
+        }
+
+        // Object Detection specific
+        if (args.operation == "detect-objects") {
+            if (!result.count("yolo_cfg") || !result.count("yolo_weights") || !result.count("yolo_names")) {
+                 throw std::runtime_error("YOLO model files (--yolo_cfg, --yolo_weights, --yolo_names) are required for detect-objects operation.");
+            }
+            args.yolo_config = result["yolo_cfg"].as<std::string>();
+            args.yolo_weights = result["yolo_weights"].as<std::string>();
+            args.yolo_names = result["yolo_names"].as<std::string>();
+            args.yolo_conf = result["conf"].as<float>(); // Use default if not provided
+            args.yolo_nms = result["nms"].as<float>();   // Use default if not provided
+
+             if (args.yolo_conf <= 0 || args.yolo_conf > 1.0) {
+                 throw std::runtime_error("Confidence threshold (--conf) must be between 0 and 1.");
+             }
+             if (args.yolo_nms <= 0 || args.yolo_nms > 1.0) {
+                 throw std::runtime_error("NMS threshold (--nms) must be between 0 and 1.");
+             }
         }
 
     } catch (const cxxopts::exceptions::exception& e) {
