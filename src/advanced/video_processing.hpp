@@ -5,6 +5,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp> // For cv::VideoCapture, cv::VideoWriter
 #include <opencv2/imgproc.hpp> // For cv::cvtColor etc.
+#include <opencv2/video.hpp>   // For background subtraction (MOG2)
 
 /**
  * @brief Processes an input video file, applies a grayscale filter to each frame,
