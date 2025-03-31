@@ -30,6 +30,9 @@ struct ParsedArguments {
     std::optional<double> canny_threshold1; // For Canny edge detection
     std::optional<double> canny_threshold2; // For Canny edge detection
 
+    // --- Advanced Feature Args ---
+    std::optional<std::string> cascade_file; // Path to Haar cascade XML for face detection
+
     // Potential future parameters can be added here
 };
 
@@ -48,15 +51,17 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
 
         options.add_options()
             ("h,help", "Display this help message")
-            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray)", cxxopts::value<std::string>())
+            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces)", cxxopts::value<std::string>())
             ("i,input", "Input image/video file path(s). Multiple allowed for stitch.", cxxopts::value<std::vector<std::string>>())
             ("o,output", "Output image/video file path", cxxopts::value<std::string>())
-            // Operation-specific options
+            // Core operation-specific options
             ("k,kernel_size", "Kernel size for dilation/erosion (positive odd integer)", cxxopts::value<int>()->default_value("3"))
             ("f,factor", "Resize factor (e.g., 1.5 for 150%, 0.5 for 50%)", cxxopts::value<double>())
             ("b,brightness", "Value to add/subtract for brightness adjustment (-255 to 255)", cxxopts::value<int>()->default_value("0"))
             ("t1,threshold1", "First threshold for the Canny edge detector hysteresis procedure", cxxopts::value<double>()->default_value("100.0"))
-            ("t2,threshold2", "Second threshold for the Canny edge detector hysteresis procedure", cxxopts::value<double>()->default_value("200.0"));
+            ("t2,threshold2", "Second threshold for the Canny edge detector hysteresis procedure", cxxopts::value<double>()->default_value("200.0"))
+            // Advanced operation-specific options
+            ("c,cascade", "Path to the cascade classifier XML file (for detect-faces)", cxxopts::value<std::string>());
 
         // Allow input files to be positional for convenience (e.g., ./AI_SLOP --op stitch img1.jpg img2.jpg -o out.jpg)
         // options.parse_positional("input"); // Let's stick to explicit -i for now for clarity
@@ -91,6 +96,10 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
         args.output_file = result["output"].as<std::string>();
 
         // --- Populate Optional Parameters ---
+        args.kernel_size = result["kernel_size"].as<int>(); // Always parse, default exists
+        args.brightness_value = result["brightness"].as<int>(); // Always parse, default exists
+        args.canny_threshold1 = result["threshold1"].as<double>(); // Always parse, default exists
+        args.canny_threshold2 = result["threshold2"].as<double>(); // Always parse, default exists
 
         // Dilate/Erode specific
         if (args.operation == "dilate" || args.operation == "erode") {
@@ -143,6 +152,15 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
         // Video specific validation (expects exactly one input)
         if (args.operation == "video-gray" && args.input_files.size() != 1) {
             throw std::runtime_error("Video operations require exactly one input video file.");
+        }
+
+        // Face Detection specific
+        if (args.operation == "detect-faces") {
+            if (!result.count("cascade")) {
+                 throw std::runtime_error("Cascade file path (--cascade or -c) is required for detect-faces operation.");
+            }
+            args.cascade_file = result["cascade"].as<std::string>();
+            // Could add validation here to check if the file string is non-empty
         }
 
     } catch (const cxxopts::exceptions::exception& e) {

@@ -19,6 +19,7 @@
 
 // Include advanced function headers
 #include "advanced/video_processing.hpp"
+#include "advanced/face_detection.hpp"
 
 /**
  * @brief Main entry point for the AI_SLOP application.
@@ -82,7 +83,19 @@ int main(int argc, char** argv) {
             if (args.input_files.size() != 1) { // Validation already in parser, but defensive check
                  throw std::runtime_error("Video operations require exactly one input video path provided via -i.");
              }
-            std::cout << "Video operation ('" << args.operation << "') selected. Input video: " << args.input_files[0] << std::endl;
+             std::cout << "Video operation ('" << args.operation << "') selected. Input video: " << args.input_files[0] << std::endl;
+        }
+        else if (args.operation == "detect-faces") {
+            // Standard single image input expected
+            if (args.input_files.size() != 1) {
+                throw std::runtime_error("Face detection requires exactly one input image path.");
+            }
+            // Load single image
+            input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR);
+            if (input_image.empty()) {
+                throw std::runtime_error("Failed to load input image: " + args.input_files[0]);
+            }
+            std::cout << "Input image loaded: " << args.input_files[0] << std::endl;
         }
         else if (args.input_files.size() == 1) {
             // Load single image for other non-stitch, non-video operations
@@ -172,6 +185,15 @@ int main(int argc, char** argv) {
                  // process_video_grayscale throws on error, so this might not be reached unless it returns false
                  throw std::runtime_error("Video processing failed for an unknown reason.");
             }
+        }
+        else if (args.operation == "detect-faces") {
+            if (!args.cascade_file.has_value() || args.cascade_file.value().empty()) {
+                throw std::runtime_error("Cascade file path (-c or --cascade) is required for face detection.");
+            }
+            std::cout << "Performing face detection..." << std::endl;
+            // Using default scale factor, min neighbors, min size from detect_faces signature
+            output_image = detect_faces(input_image, args.cascade_file.value()); 
+            operation_handled = true; // We want to save the output image with rectangles
         }
         // --- Add other operations here later ---
         else {

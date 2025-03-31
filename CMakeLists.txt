@@ -43,6 +43,7 @@ set(APP_SOURCES
     src/core/stitching.cpp
     src/core/canny.cpp
     src/advanced/video_processing.cpp
+    src/advanced/face_detection.cpp
     # Add other .cpp files here as they are created
 )
 
