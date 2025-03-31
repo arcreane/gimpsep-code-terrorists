@@ -37,6 +37,7 @@ include_directories(
 set(APP_SOURCES
     src/main.cpp
     src/core/morphology.cpp
+    src/core/resize.cpp
     # Add other .cpp files here as they are created
 )
 

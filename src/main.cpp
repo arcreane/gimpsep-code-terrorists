@@ -12,7 +12,7 @@
 
 // Include core function headers
 #include "core/morphology.hpp"
-// #include "core/resize.hpp" // Add later
+#include "core/resize.hpp"
 // #include "core/brightness.hpp" // Add later
 // #include "core/canny.hpp" // Add later
 // #include "core/stitching.hpp" // Add later
@@ -99,8 +99,16 @@ int main(int argc, char** argv) {
             output_image = erode_image(input_image, args.kernel_size.value());
             operation_handled = true;
         }
+        else if (args.operation == "resize") {
+            if (!args.resize_factor.has_value()) {
+                // This should be caught by the parser, but double-check
+                throw std::runtime_error("Resize factor (-f or --factor) is required for resize operation.");
+            }
+            std::cout << "Performing resize..." << std::endl;
+            output_image = resize_image(input_image, args.resize_factor.value()); // Using default interpolation (linear)
+            operation_handled = true;
+        }
         // --- Add other operations here later ---
-        // else if (args.operation == "resize") { ... }
         // else if (args.operation == "brightness") { ... }
         // else if (args.operation == "canny") { ... }
         // else if (args.operation == "stitch") { ... }
