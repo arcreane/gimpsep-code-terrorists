@@ -39,6 +39,7 @@ set(APP_SOURCES
     src/core/morphology.cpp
     src/core/resize.cpp
     src/core/brightness.cpp
+    src/core/stitching.cpp
     # Add other .cpp files here as they are created
 )
 
