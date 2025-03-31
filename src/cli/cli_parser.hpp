@@ -37,6 +37,9 @@ struct ParsedArguments {
     std::optional<std::string> yolo_names;   // Path to YOLO class names file
     std::optional<float> yolo_conf;      // YOLO confidence threshold
     std::optional<float> yolo_nms;       // YOLO NMS threshold
+    std::optional<std::string> mask_file;  // Path to mask image for inpainting
+    std::optional<double> inpaint_radius;// Inpainting radius
+    std::optional<std::string> inpaint_method; // Inpainting method (NS or TELEA)
 
     // Potential future parameters can be added here
 };
@@ -56,7 +59,7 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
 
         options.add_options()
             ("h,help", "Display this help message")
-            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces, bg-subtract, detect-objects)", cxxopts::value<std::string>())
+            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces, bg-subtract, detect-objects, inpaint)", cxxopts::value<std::string>())
             ("i,input", "Input image/video file path(s). Multiple allowed for stitch.", cxxopts::value<std::vector<std::string>>())
             ("o,output", "Output image/video file path", cxxopts::value<std::string>())
             // Core operation-specific options
@@ -72,7 +75,11 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
             ("yolo_weights", "Path to YOLO .weights file (for detect-objects)", cxxopts::value<std::string>())
             ("yolo_names", "Path to YOLO .names file (for detect-objects)", cxxopts::value<std::string>())
             ("conf", "Confidence threshold (for detect-objects)", cxxopts::value<float>()->default_value("0.5"))
-            ("nms", "NMS threshold (for detect-objects)", cxxopts::value<float>()->default_value("0.4"));
+            ("nms", "NMS threshold (for detect-objects)", cxxopts::value<float>()->default_value("0.4"))
+            // Inpainting options
+            ("m,mask", "Path to the mask image (for inpaint)", cxxopts::value<std::string>())
+            ("radius", "Inpainting radius (for inpaint)", cxxopts::value<double>()->default_value("3.0"))
+            ("inpaint_method", "Inpainting method: NS or TELEA (for inpaint)", cxxopts::value<std::string>()->default_value("NS"));
 
         // Allow input files to be positional for convenience (e.g., ./AI_SLOP --op stitch img1.jpg img2.jpg -o out.jpg)
         // options.parse_positional("input"); // Let's stick to explicit -i for now for clarity
@@ -192,6 +199,26 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
              if (args.yolo_nms <= 0 || args.yolo_nms > 1.0) {
                  throw std::runtime_error("NMS threshold (--nms) must be between 0 and 1.");
              }
+        }
+
+        // Inpainting specific
+        if (args.operation == "inpaint") {
+            if (!result.count("mask")) {
+                 throw std::runtime_error("Mask file path (--mask or -m) is required for inpaint operation.");
+            }
+            args.mask_file = result["mask"].as<std::string>();
+            args.inpaint_radius = result["radius"].as<double>(); // Use default if not provided
+            args.inpaint_method = result["inpaint_method"].as<std::string>(); // Use default if not provided
+
+            if (args.inpaint_radius.value() <= 0) {
+                throw std::runtime_error("Inpaint radius (--radius) must be positive.");
+            }
+            std::string method_upper = args.inpaint_method.value();
+            // Convert method to upper case for comparison
+            std::transform(method_upper.begin(), method_upper.end(), method_upper.begin(), ::toupper);
+            if (method_upper != "NS" && method_upper != "TELEA") {
+                 throw std::runtime_error("Invalid inpainting method (--inpaint_method). Must be NS or TELEA.");
+            }
         }
 
     } catch (const cxxopts::exceptions::exception& e) {

@@ -21,6 +21,7 @@
 #include "advanced/video_processing.hpp"
 #include "advanced/face_detection.hpp"
 #include "advanced/object_detection.hpp"
+#include "advanced/inpainting.hpp"
 
 /**
  * @brief Main entry point for the AI_SLOP application.
@@ -125,6 +126,22 @@ int main(int argc, char** argv) {
             }
             std::cout << "Input image loaded: " << args.input_files[0] << std::endl;
         } 
+        else if (args.operation == "inpaint") {
+            // Inpaint expects single input image and single mask image
+             if (args.input_files.size() != 1) {
+                 throw std::runtime_error("Inpaint operation requires exactly one input image path (-i).");
+             }
+             if (!args.mask_file.has_value() || args.mask_file.value().empty()) {
+                 throw std::runtime_error("Inpaint operation requires a mask image path (--mask).");
+             }
+             // Load input image
+             input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR); // Load color by default
+             if (input_image.empty()) {
+                 throw std::runtime_error("Failed to load input image: " + args.input_files[0]);
+             }
+             std::cout << "Input image loaded: " << args.input_files[0] << std::endl;
+             // Mask image is loaded separately within the main logic block below
+        }
         else {
              // Covers cases like 0 inputs, or >1 input for non-stitch operations
              throw std::runtime_error("Invalid number of input files (" + std::to_string(args.input_files.size()) + ") provided for operation: " + args.operation);
@@ -239,6 +256,34 @@ int main(int argc, char** argv) {
                                                args.yolo_conf.value(),
                                                args.yolo_nms.value());
              operation_handled = true; // Save the output image with detections
+        }
+        else if (args.operation == "inpaint") {
+            // Mask file path checked by parser, but check optional value access
+            if (!args.mask_file || !args.inpaint_radius || !args.inpaint_method) {
+                throw std::runtime_error("Missing required arguments for inpaint operation (mask path, radius, method).");
+            }
+
+            // Load the mask image (must be grayscale)
+            cv::Mat mask_image = cv::imread(args.mask_file.value(), cv::IMREAD_GRAYSCALE);
+            if (mask_image.empty()) {
+                throw std::runtime_error("Failed to load mask image: " + args.mask_file.value());
+            }
+            std::cout << "Mask image loaded: " << args.mask_file.value() << std::endl;
+
+            // Determine inpainting method flag
+            int method_flag = cv::INPAINT_NS; // Default
+            std::string method_upper = args.inpaint_method.value();
+            std::transform(method_upper.begin(), method_upper.end(), method_upper.begin(), ::toupper);
+            if (method_upper == "TELEA") {
+                method_flag = cv::INPAINT_TELEA;
+            }
+
+            std::cout << "Performing image inpainting..." << std::endl;
+            output_image = inpaint_image(input_image,
+                                         mask_image,
+                                         args.inpaint_radius.value(),
+                                         method_flag);
+            operation_handled = true; // Save the output image
         }
         // --- Add other operations here later ---
         else {

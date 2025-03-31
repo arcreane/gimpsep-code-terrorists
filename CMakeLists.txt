@@ -45,6 +45,7 @@ set(APP_SOURCES
     src/advanced/video_processing.cpp
     src/advanced/face_detection.cpp
     src/advanced/object_detection.cpp
+    src/advanced/inpainting.cpp
     # Add other .cpp files here as they are created
 )
 
