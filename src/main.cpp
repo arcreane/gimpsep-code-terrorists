@@ -4,9 +4,18 @@
 #include <stdexcept> // For exception handling
 
 #include <opencv2/core.hpp> // Basic OpenCV structures (cv::Mat)
+#include <opencv2/imgcodecs.hpp> // For cv::imread, cv::imwrite
+#include <opencv2/highgui.hpp> // For cv::imshow (optional debugging)
 
 // Include the command-line parser header
 #include "cli/cli_parser.hpp"
+
+// Include core function headers
+#include "core/morphology.hpp"
+// #include "core/resize.hpp" // Add later
+// #include "core/brightness.hpp" // Add later
+// #include "core/canny.hpp" // Add later
+// #include "core/stitching.hpp" // Add later
 
 /**
  * @brief Main entry point for the AI_SLOP application.
@@ -53,18 +62,70 @@ int main(int argc, char** argv) {
         std::cout << "------------------------" << std::endl;
 
 
-        // TODO: Implement image loading based on args.input_files
-        // TODO: Implement function dispatch based on args.operation
-        // TODO: Call the appropriate image processing function from src/core/...
-        // TODO: Implement image saving to args.output_file
+        // --- Image Loading ---
+        // For morphology, resize, brightness, canny - expect one input file
+        cv::Mat input_image;
+        if (args.operation != "stitch" && args.input_files.size() == 1) {
+            input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR); // Load as color image
+            if (input_image.empty()) {
+                throw std::runtime_error("Failed to load input image: " + args.input_files[0]);
+            }
+            std::cout << "Input image loaded: " << args.input_files[0] << std::endl;
+        } else if (args.operation == "stitch") {
+            // Stitching handles multiple images later
+            std::cout << "Stitching operation selected - image loading deferred." << std::endl;
+        } else {
+            throw std::runtime_error("Invalid number of input files for operation: " + args.operation);
+        }
 
-        std::cout << "Processing task ('" << args.operation << "') will be performed here." << std::endl;
+        // --- Function Dispatch --- 
+        cv::Mat output_image;
+        bool operation_handled = false;
 
+        if (args.operation == "dilate") {
+            if (!args.kernel_size.has_value()) {
+                // This should be caught by the parser, but double-check
+                throw std::runtime_error("Kernel size is required for dilation.");
+            }
+            std::cout << "Performing dilation..." << std::endl;
+            output_image = dilate_image(input_image, args.kernel_size.value());
+            operation_handled = true;
+        }
+        else if (args.operation == "erode") {
+            if (!args.kernel_size.has_value()) {
+                throw std::runtime_error("Kernel size is required for erosion.");
+            }
+            std::cout << "Performing erosion..." << std::endl;
+            output_image = erode_image(input_image, args.kernel_size.value());
+            operation_handled = true;
+        }
+        // --- Add other operations here later ---
+        // else if (args.operation == "resize") { ... }
+        // else if (args.operation == "brightness") { ... }
+        // else if (args.operation == "canny") { ... }
+        // else if (args.operation == "stitch") { ... }
+        else {
+            // If not stitch (handled above), it's an unknown operation
+            if (args.operation != "stitch") { 
+                throw std::runtime_error("Unknown or unimplemented operation: " + args.operation);
+            }
+        }
 
-    } catch (const std::runtime_error& e) {
+        // --- Image Saving ---
+        if (operation_handled) {
+            if (!cv::imwrite(args.output_file, output_image)) {
+                throw std::runtime_error("Failed to save output image to: " + args.output_file);
+            }
+            std::cout << "Output image saved successfully to: " << args.output_file << std::endl;
+        }
+
+        // Optional: Display images for debugging
+        // if (!input_image.empty()) cv::imshow("Input Image", input_image);
+        // if (!output_image.empty()) cv::imshow("Output Image", output_image);
+        // if (!input_image.empty() || !output_image.empty()) cv::waitKey(0); // Wait for a key press
+
+    } catch (const std::exception& e) { // Catch standard exceptions (incl. runtime_error, invalid_argument)
         std::cerr << "Error: " << e.what() << std::endl;
-        // Consider printing usage instructions here as well
-        // Example: print_usage();
         return 1; // Indicate error
     } catch (...) {
         std::cerr << "An unexpected error occurred." << std::endl;

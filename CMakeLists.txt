@@ -27,15 +27,21 @@ message(STATUS "OpenCV libraries found: ${OpenCV_LIBS}")
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src # Include top-level src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cli # Include cli subdirectory
-    # Add other subdirectories like src/core later
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core # Include core subdirectory
     ${OpenCV_INCLUDE_DIRS}
     )
 
 # --- Executable Definition ---
 
+# List all source files for the executable
+set(APP_SOURCES
+    src/main.cpp
+    src/core/morphology.cpp
+    # Add other .cpp files here as they are created
+)
+
 # Add the executable target
-# Note: If we add .cpp files in subdirs, we'll need to list them here or use globbing
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME} ${APP_SOURCES})
 
 # Link the executable against the OpenCV libraries
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
