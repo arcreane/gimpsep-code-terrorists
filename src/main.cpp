@@ -13,7 +13,7 @@
 // Include core function headers
 #include "core/morphology.hpp"
 #include "core/resize.hpp"
-// #include "core/brightness.hpp" // Add later
+#include "core/brightness.hpp"
 // #include "core/canny.hpp" // Add later
 // #include "core/stitching.hpp" // Add later
 
@@ -108,8 +108,16 @@ int main(int argc, char** argv) {
             output_image = resize_image(input_image, args.resize_factor.value()); // Using default interpolation (linear)
             operation_handled = true;
         }
+        else if (args.operation == "brightness") {
+            if (!args.brightness_value.has_value()) {
+                // Parser provides a default, so this check might be redundant unless default is removed
+                throw std::runtime_error("Brightness value (-b or --brightness) is required for brightness operation.");
+            }
+            std::cout << "Performing brightness adjustment..." << std::endl;
+            output_image = adjust_brightness(input_image, args.brightness_value.value());
+            operation_handled = true;
+        }
         // --- Add other operations here later ---
-        // else if (args.operation == "brightness") { ... }
         // else if (args.operation == "canny") { ... }
         // else if (args.operation == "stitch") { ... }
         else {
