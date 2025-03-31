@@ -51,7 +51,7 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
 
         options.add_options()
             ("h,help", "Display this help message")
-            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces)", cxxopts::value<std::string>())
+            ("op,operation", "The operation to perform (dilate, erode, resize, brightness, stitch, canny, video-gray, detect-faces, bg-subtract)", cxxopts::value<std::string>())
             ("i,input", "Input image/video file path(s). Multiple allowed for stitch.", cxxopts::value<std::vector<std::string>>())
             ("o,output", "Output image/video file path", cxxopts::value<std::string>())
             // Core operation-specific options
@@ -150,8 +150,9 @@ inline ParsedArguments parse_arguments(int argc, char** argv) {
         }
 
         // Video specific validation (expects exactly one input)
-        if (args.operation == "video-gray" && args.input_files.size() != 1) {
-            throw std::runtime_error("Video operations require exactly one input video file.");
+        if ((args.operation == "video-gray" || args.operation == "bg-subtract") 
+             && args.input_files.size() != 1) {
+            throw std::runtime_error("Video operations (video-gray, bg-subtract) require exactly one input video file.");
         }
 
         // Face Detection specific

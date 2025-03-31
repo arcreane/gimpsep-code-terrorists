@@ -85,6 +85,13 @@ int main(int argc, char** argv) {
              }
              std::cout << "Video operation ('" << args.operation << "') selected. Input video: " << args.input_files[0] << std::endl;
         }
+        else if (args.operation == "bg-subtract") {
+            // Background subtraction input validation (also video)
+            if (args.input_files.size() != 1) { 
+                 throw std::runtime_error("Background subtraction requires exactly one input video path.");
+             }
+            std::cout << "Background subtraction ('" << args.operation << "') selected. Input video: " << args.input_files[0] << std::endl;
+        }
         else if (args.operation == "detect-faces") {
             // Standard single image input expected
             if (args.input_files.size() != 1) {
@@ -194,6 +201,17 @@ int main(int argc, char** argv) {
             // Using default scale factor, min neighbors, min size from detect_faces signature
             output_image = detect_faces(input_image, args.cascade_file.value()); 
             operation_handled = true; // We want to save the output image with rectangles
+        }
+        else if (args.operation == "bg-subtract") {
+            std::cout << "Performing background subtraction..." << std::endl;
+            // Using default MOG2 parameters from function signature
+            bool success = process_video_bg_subtract_mog2(args.input_files[0], args.output_file);
+            if (success) {
+                 std::cout << "Background subtraction completed successfully." << std::endl;
+                 // Saving is handled internally, operation_handled remains false.
+            } else {
+                 throw std::runtime_error("Background subtraction failed for an unknown reason.");
+            }
         }
         // --- Add other operations here later ---
         else {
