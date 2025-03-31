@@ -15,7 +15,7 @@
 #include "core/resize.hpp"
 #include "core/brightness.hpp"
 // #include "core/canny.hpp" // Add later
-// #include "core/stitching.hpp" // Add later
+#include "core/stitching.hpp"
 
 /**
  * @brief Main entry point for the AI_SLOP application.
@@ -63,19 +63,28 @@ int main(int argc, char** argv) {
 
 
         // --- Image Loading ---
-        // For morphology, resize, brightness, canny - expect one input file
-        cv::Mat input_image;
-        if (args.operation != "stitch" && args.input_files.size() == 1) {
-            input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR); // Load as color image
+        cv::Mat input_image; // Keep for single-image operations
+        std::vector<cv::Mat> input_images_stitch; // Keep vector of paths for stitcher
+
+        if (args.operation == "stitch") {
+            // Stitching loads images internally from paths
+             if (args.input_files.size() < 2) {
+                 // This check is also in cli_parser, but good to be robust
+                 throw std::runtime_error("Stitching operation requires at least two input image paths provided via -i.");
+             }
+             std::cout << "Stitching operation selected. Image loading will occur in the stitch function." << std::endl;
+        }
+        else if (args.input_files.size() == 1) {
+            // Load single image for non-stitch operations
+            input_image = cv::imread(args.input_files[0], cv::IMREAD_COLOR);
             if (input_image.empty()) {
                 throw std::runtime_error("Failed to load input image: " + args.input_files[0]);
             }
             std::cout << "Input image loaded: " << args.input_files[0] << std::endl;
-        } else if (args.operation == "stitch") {
-            // Stitching handles multiple images later
-            std::cout << "Stitching operation selected - image loading deferred." << std::endl;
-        } else {
-            throw std::runtime_error("Invalid number of input files for operation: " + args.operation);
+        } 
+        else {
+             // Covers cases like 0 inputs, or >1 input for non-stitch operations
+             throw std::runtime_error("Invalid number of input files (" + std::to_string(args.input_files.size()) + ") provided for operation: " + args.operation);
         }
 
         // --- Function Dispatch --- 
@@ -117,14 +126,24 @@ int main(int argc, char** argv) {
             output_image = adjust_brightness(input_image, args.brightness_value.value());
             operation_handled = true;
         }
+        else if (args.operation == "stitch") {
+            std::cout << "Performing stitching..." << std::endl;
+            cv::Stitcher::Status status = stitch_images(args.input_files, output_image); // output_image is the pano
+
+            if (status == cv::Stitcher::OK) {
+                std::cout << "Stitching completed successfully." << std::endl;
+                operation_handled = true; // Set to true ONLY on success
+            } else {
+                std::string status_msg = stitcher_status_to_string(status);
+                // Throw an error or just report? Let's throw for now.
+                throw std::runtime_error("Stitching failed: " + status_msg);
+            }
+        }
         // --- Add other operations here later ---
         // else if (args.operation == "canny") { ... }
-        // else if (args.operation == "stitch") { ... }
         else {
-            // If not stitch (handled above), it's an unknown operation
-            if (args.operation != "stitch") { 
-                throw std::runtime_error("Unknown or unimplemented operation: " + args.operation);
-            }
+            // Unknown operation (stitch case handled within the 'else if' block)
+            throw std::runtime_error("Unknown or unimplemented operation: " + args.operation);
         }
 
         // --- Image Saving ---
