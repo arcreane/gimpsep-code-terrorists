@@ -5,7 +5,7 @@
 #include <vector>
 #include <opencv2/core.hpp>
 #include <opencv2/objdetect.hpp> // For cv::CascadeClassifier
-#include <opencv2/imgproc.hpp> // For cv::rectangle, cv::cvtColor
+#include <opencv2/imgproc.hpp>   // For cv::rectangle, cv::cvtColor
 
 /**
  * @brief Detects faces in an input image using a Haar cascade classifier.
@@ -21,10 +21,10 @@
  * @return cv::Mat A copy of the input image with rectangles drawn around detected faces.
  * @throws std::runtime_error if the input image is empty or the cascade file cannot be loaded.
  */
-cv::Mat detect_faces(const cv::Mat& input_image,
-                     const std::string& cascade_file_path,
+cv::Mat detect_faces(const cv::Mat &input_image,
+                     const std::string &cascade_file_path,
                      double scale_factor = 1.1,
                      int min_neighbors = 3,
                      cv::Size min_size = cv::Size(30, 30)); // Default min size
 
-#endif // AI_SLOP_FACE_DETECTION_HPP 
+#endif // AI_SLOP_FACE_DETECTION_HPP

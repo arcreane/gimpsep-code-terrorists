@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <opencv2/core.hpp>
-#include <opencv2/dnn.hpp>      // For cv::dnn::Net
+#include <opencv2/dnn.hpp>     // For cv::dnn::Net
 #include <opencv2/imgproc.hpp> // For cv::rectangle, cv::putText etc.
 
 /**
@@ -25,13 +25,13 @@
  * @throws std::runtime_error if the input image is empty, model files cannot be loaded,
  *                            or class names cannot be read.
  */
-cv::Mat detect_objects_yolo(const cv::Mat& input_image,
-                              const std::string& config_path,
-                              const std::string& weights_path,
-                              const std::string& names_path,
-                              float confidence_threshold = 0.5f,
-                              float nms_threshold = 0.4f,
-                              int input_width = 416, // Common YOLO input size
-                              int input_height = 416);
+cv::Mat detect_objects_yolo(const cv::Mat &input_image,
+                            const std::string &config_path,
+                            const std::string &weights_path,
+                            const std::string &names_path,
+                            float confidence_threshold = 0.5f,
+                            float nms_threshold = 0.4f,
+                            int input_width = 416, // Common YOLO input size
+                            int input_height = 416);
 
-#endif // AI_SLOP_OBJECT_DETECTION_HPP 
+#endif // AI_SLOP_OBJECT_DETECTION_HPP

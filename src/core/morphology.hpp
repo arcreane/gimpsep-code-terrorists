@@ -1,7 +1,7 @@
 #ifndef AI_SLOP_MORPHOLOGY_HPP
 #define AI_SLOP_MORPHOLOGY_HPP
 
-#include <opencv2/core.hpp> // For cv::Mat
+#include <opencv2/core.hpp>    // For cv::Mat
 #include <opencv2/imgproc.hpp> // For morphological operations
 
 /**
@@ -12,7 +12,7 @@
  * @return cv::Mat The dilated image.
  * @throws std::invalid_argument if kernel_size is not a positive odd integer.
  */
-cv::Mat dilate_image(const cv::Mat& input_image, int kernel_size);
+cv::Mat dilate_image(const cv::Mat &input_image, int kernel_size);
 
 /**
  * @brief Erodes an input image.
@@ -22,6 +22,6 @@ cv::Mat dilate_image(const cv::Mat& input_image, int kernel_size);
  * @return cv::Mat The eroded image.
  * @throws std::invalid_argument if kernel_size is not a positive odd integer.
  */
-cv::Mat erode_image(const cv::Mat& input_image, int kernel_size);
+cv::Mat erode_image(const cv::Mat &input_image, int kernel_size);
 
-#endif // AI_SLOP_MORPHOLOGY_HPP 
+#endif // AI_SLOP_MORPHOLOGY_HPP

@@ -16,7 +16,7 @@
  * @return bool True if processing was successful and the video was saved, false otherwise.
  * @throws std::runtime_error if the input video cannot be opened or the output video cannot be created.
  */
-bool process_video_grayscale(const std::string& input_video_path, const std::string& output_video_path);
+bool process_video_grayscale(const std::string &input_video_path, const std::string &output_video_path);
 
 /**
  * @brief Performs background subtraction on a video using the MOG2 algorithm.
@@ -32,12 +32,12 @@ bool process_video_grayscale(const std::string& input_video_path, const std::str
  * @return bool True if processing was successful, false otherwise.
  * @throws std::runtime_error if the input video cannot be opened or the output video cannot be created.
  */
-bool process_video_bg_subtract_mog2(const std::string& input_video_path,
-                                     const std::string& output_video_path,
-                                     int history = 500,         // Default history
-                                     double var_threshold = 16, // Default threshold
-                                     bool detect_shadows = true); // Default detect shadows
+bool process_video_bg_subtract_mog2(const std::string &input_video_path,
+                                    const std::string &output_video_path,
+                                    int history = 500,           // Default history
+                                    double var_threshold = 16,   // Default threshold
+                                    bool detect_shadows = true); // Default detect shadows
 
 // Add other video processing functions here later (e.g., applying different filters, stabilization, etc.)
 
-#endif // AI_SLOP_VIDEO_PROCESSING_HPP 
+#endif // AI_SLOP_VIDEO_PROCESSING_HPP

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <opencv2/core.hpp> // For cv::Mat
+#include <opencv2/core.hpp>      // For cv::Mat
 #include <opencv2/stitching.hpp> // For cv::Stitcher
 
 /**
@@ -18,8 +18,7 @@
  *         (cv::Stitcher::OK indicates success).
  * @throws std::runtime_error if fewer than two image paths are provided or if images cannot be loaded.
  */
-cv::Stitcher::Status stitch_images(const std::vector<std::string>& image_paths, cv::Mat& output_pano);
-
+cv::Stitcher::Status stitch_images(const std::vector<std::string> &image_paths, cv::Mat &output_pano);
 
 /**
  * @brief Converts a Stitcher status code to a human-readable string.
@@ -29,5 +28,4 @@ cv::Stitcher::Status stitch_images(const std::vector<std::string>& image_paths, 
  */
 std::string stitcher_status_to_string(cv::Stitcher::Status status);
 
-
-#endif // AI_SLOP_STITCHING_HPP 
+#endif // AI_SLOP_STITCHING_HPP

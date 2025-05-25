@@ -5,7 +5,8 @@
 #include <vector>
 
 // Helper function to get output layer names for YOLO
-std::vector<cv::String> get_output_layer_names(const cv::dnn::Net& net) {
+std::vector<cv::String> get_output_layer_names(const cv::dnn::Net &net)
+{
     std::vector<cv::String> names;
     std::vector<int> out_layers = net.getUnconnectedOutLayers();
     std::vector<cv::String> layers_names = net.getLayerNames();
@@ -15,39 +16,44 @@ std::vector<cv::String> get_output_layer_names(const cv::dnn::Net& net) {
     return names;
 }
 
-cv::Mat detect_objects_yolo(const cv::Mat& input_image,
-                              const std::string& config_path,
-                              const std::string& weights_path,
-                              const std::string& names_path,
-                              float confidence_threshold,
-                              float nms_threshold,
-                              int input_width,
-                              int input_height)
+cv::Mat detect_objects_yolo(const cv::Mat &input_image,
+                            const std::string &config_path,
+                            const std::string &weights_path,
+                            const std::string &names_path,
+                            float confidence_threshold,
+                            float nms_threshold,
+                            int input_width,
+                            int input_height)
 {
-    if (input_image.empty()) {
+    if (input_image.empty())
+    {
         throw std::runtime_error("Input image for object detection is empty.");
     }
 
     // 1. Load class names
     std::vector<std::string> class_names;
     std::ifstream ifs(names_path.c_str());
-    if (!ifs.is_open()) {
+    if (!ifs.is_open())
+    {
         throw std::runtime_error("Error opening class names file: " + names_path);
     }
     std::string line;
-    while (std::getline(ifs, line)) {
+    while (std::getline(ifs, line))
+    {
         class_names.push_back(line);
     }
     ifs.close();
-    if (class_names.empty()) {
-         throw std::runtime_error("Class names file is empty or could not be read: " + names_path);
+    if (class_names.empty())
+    {
+        throw std::runtime_error("Class names file is empty or could not be read: " + names_path);
     }
     std::cout << "Loaded " << class_names.size() << " class names." << std::endl;
 
     // 2. Load the network
     cv::dnn::Net net = cv::dnn::readNetFromDarknet(config_path, weights_path);
-    if (net.empty()) {
-         throw std::runtime_error("Failed to load YOLO model using config: " + config_path + " and weights: " + weights_path);
+    if (net.empty())
+    {
+        throw std::runtime_error("Failed to load YOLO model using config: " + config_path + " and weights: " + weights_path);
     }
     // Optional: Set preferable backend and target (e.g., for CUDA or OpenCL acceleration if available and OpenCV built with support)
     // net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
@@ -63,7 +69,7 @@ cv::Mat detect_objects_yolo(const cv::Mat& input_image,
     // Scalar: Mean subtraction values (often 0 for YOLO)
     // Bool swapRB: Swap Red and Blue channels (Darknet models expect BGR)
     // Bool crop: Whether to crop after resize (false)
-    cv::dnn::blobFromImage(input_image, blob, 1.0/255.0, cv::Size(input_width, input_height), true, false);
+    cv::dnn::blobFromImage(input_image, blob, 1.0 / 255.0, cv::Size(input_width, input_height), true, false);
 
     // 4. Set input
     net.setInput(blob);
@@ -82,17 +88,20 @@ cv::Mat detect_objects_yolo(const cv::Mat& input_image,
     float x_factor = static_cast<float>(input_image.cols) / input_width;
     float y_factor = static_cast<float>(input_image.rows) / input_height;
 
-    for (const auto& output : outputs) {
+    for (const auto &output : outputs)
+    {
         // Each output is a Mat with rows = number of detections, cols = 4 (bbox) + 1 (obj conf) + num_classes
-        const float* data = (float*)output.data;
-        for (int i = 0; i < output.rows; ++i, data += output.cols) {
+        const float *data = (float *)output.data;
+        for (int i = 0; i < output.rows; ++i, data += output.cols)
+        {
             cv::Mat scores = output.row(i).colRange(5, output.cols);
             cv::Point class_id_point;
             double confidence;
             // Find the class with the highest score
             cv::minMaxLoc(scores, 0, &confidence, 0, &class_id_point);
 
-            if (confidence > confidence_threshold) {
+            if (confidence > confidence_threshold)
+            {
                 float center_x = data[0] * x_factor;
                 float center_y = data[1] * y_factor;
                 float width = data[2] * x_factor;
@@ -106,7 +115,7 @@ cv::Mat detect_objects_yolo(const cv::Mat& input_image,
             }
         }
     }
-     std::cout << "Processed outputs. Initial detections: " << boxes.size() << std::endl;
+    std::cout << "Processed outputs. Initial detections: " << boxes.size() << std::endl;
 
     // 7. Apply Non-Maximum Suppression (NMS)
     std::vector<int> indices;
@@ -115,7 +124,8 @@ cv::Mat detect_objects_yolo(const cv::Mat& input_image,
 
     // 8. Draw final bounding boxes and labels
     cv::Mat output_image = input_image.clone();
-    for (int idx : indices) {
+    for (int idx : indices)
+    {
         cv::Rect box = boxes[idx];
         int class_id = class_ids[idx];
         float confidence = confidences[idx];
@@ -144,4 +154,4 @@ cv::Mat detect_objects_yolo(const cv::Mat& input_image,
     }
 
     return output_image;
-} 
+}

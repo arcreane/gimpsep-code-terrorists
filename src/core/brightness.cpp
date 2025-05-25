@@ -1,8 +1,10 @@
 #include "brightness.hpp"
 #include <stdexcept> // For std::invalid_argument
 
-cv::Mat adjust_brightness(const cv::Mat& input_image, int value) {
-    if (input_image.empty()) {
+cv::Mat adjust_brightness(const cv::Mat &input_image, int value)
+{
+    if (input_image.empty())
+    {
         throw std::invalid_argument("Input image for brightness adjustment is empty.");
     }
 
@@ -18,4 +20,4 @@ cv::Mat adjust_brightness(const cv::Mat& input_image, int value) {
     // Using the same value for all channels provides uniform brightness adjustment.
 
     return adjusted_image;
-} 
+}

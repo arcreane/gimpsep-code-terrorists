@@ -1,7 +1,7 @@
 #ifndef AI_SLOP_RESIZE_HPP
 #define AI_SLOP_RESIZE_HPP
 
-#include <opencv2/core.hpp> // For cv::Mat
+#include <opencv2/core.hpp>    // For cv::Mat
 #include <opencv2/imgproc.hpp> // For cv::resize
 
 /**
@@ -14,11 +14,11 @@
  * @return cv::Mat The resized image.
  * @throws std::invalid_argument if factor is not positive.
  */
-cv::Mat resize_image(const cv::Mat& input_image,
+cv::Mat resize_image(const cv::Mat &input_image,
                      double factor,
                      int interpolation = cv::INTER_LINEAR);
 
 // Potential future overload:
 // cv::Mat resize_image(const cv::Mat& input_image, int target_width, int target_height, int interpolation = cv::INTER_LINEAR);
 
-#endif // AI_SLOP_RESIZE_HPP 
+#endif // AI_SLOP_RESIZE_HPP

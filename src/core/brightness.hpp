@@ -15,6 +15,6 @@
  * @return cv::Mat The brightness-adjusted image.
  * @throws std::invalid_argument if the input image is empty.
  */
-cv::Mat adjust_brightness(const cv::Mat& input_image, int value);
+cv::Mat adjust_brightness(const cv::Mat &input_image, int value);
 
-#endif // AI_SLOP_BRIGHTNESS_HPP 
+#endif // AI_SLOP_BRIGHTNESS_HPP

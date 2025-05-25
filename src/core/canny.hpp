@@ -1,7 +1,7 @@
 #ifndef AI_SLOP_CANNY_HPP
 #define AI_SLOP_CANNY_HPP
 
-#include <opencv2/core.hpp> // For cv::Mat
+#include <opencv2/core.hpp>    // For cv::Mat
 #include <opencv2/imgproc.hpp> // For cv::Canny
 
 /**
@@ -19,10 +19,10 @@
  * @return cv::Mat The output edge map (single-channel 8-bit image).
  * @throws std::invalid_argument if the input image is empty or thresholds are negative.
  */
-cv::Mat detect_edges_canny(const cv::Mat& input_image,
+cv::Mat detect_edges_canny(const cv::Mat &input_image,
                            double threshold1,
                            double threshold2,
                            int aperture_size = 3,
                            bool l2_gradient = false);
 
-#endif // AI_SLOP_CANNY_HPP 
+#endif // AI_SLOP_CANNY_HPP

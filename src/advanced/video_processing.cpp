@@ -2,26 +2,27 @@
 #include <iostream>
 #include <stdexcept>
 
-bool process_video_grayscale(const std::string& input_video_path, const std::string& output_video_path) {
+bool process_video_grayscale(const std::string &input_video_path, const std::string &output_video_path)
+{
     // 1. Open the input video file
     cv::VideoCapture cap(input_video_path);
-    if (!cap.isOpened()) {
+    if (!cap.isOpened())
+    {
         throw std::runtime_error("Error: Could not open input video file: " + input_video_path);
-    }
-
-    // 2. Get video properties
+    } // 2. Get video properties
     int frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
     int frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
     double fps = cap.get(cv::CAP_PROP_FPS);
-    int fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G'); // Or use another codec like MP4V, DIVX, etc.
-                                                          // MJPG is often a good default for AVI.
-                                                          // Use cap.get(cv::CAP_PROP_FOURCC) if you want to try preserving the original codec
+    int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v'); // MP4V codec - more compatible than H264
+                                                              // MP4V is widely supported and doesn't require external libraries
+                                                              // Use cap.get(cv::CAP_PROP_FOURCC) if you want to try preserving the original codec
 
     // 3. Create the output video writer
     cv::VideoWriter writer(output_video_path, fourcc, fps, cv::Size(frame_width, frame_height), false); // false for isColor (grayscale output)
-    if (!writer.isOpened()) {
+    if (!writer.isOpened())
+    {
         // Clean up capture before throwing
-        cap.release(); 
+        cap.release();
         throw std::runtime_error("Error: Could not create output video file: " + output_video_path);
     }
 
@@ -34,10 +35,12 @@ bool process_video_grayscale(const std::string& input_video_path, const std::str
     cv::Mat frame;
     cv::Mat gray_frame;
     int frame_count = 0;
-    while (true) {
+    while (true)
+    {
         cap >> frame; // Read the next frame
 
-        if (frame.empty()) {
+        if (frame.empty())
+        {
             break; // End of video
         }
 
@@ -48,7 +51,8 @@ bool process_video_grayscale(const std::string& input_video_path, const std::str
         writer.write(gray_frame);
 
         frame_count++;
-        if (frame_count % 100 == 0) { // Print progress periodically
+        if (frame_count % 100 == 0)
+        { // Print progress periodically
             std::cout << "Processed " << frame_count << " frames..." << std::endl;
         }
     }
@@ -62,30 +66,30 @@ bool process_video_grayscale(const std::string& input_video_path, const std::str
     return true;
 }
 
-bool process_video_bg_subtract_mog2(const std::string& input_video_path,
-                                     const std::string& output_video_path,
-                                     int history,
-                                     double var_threshold,
-                                     bool detect_shadows)
+bool process_video_bg_subtract_mog2(const std::string &input_video_path,
+                                    const std::string &output_video_path,
+                                    int history,
+                                    double var_threshold,
+                                    bool detect_shadows)
 {
     // 1. Open the input video file
     cv::VideoCapture cap(input_video_path);
-    if (!cap.isOpened()) {
+    if (!cap.isOpened())
+    {
         throw std::runtime_error("Error: Could not open input video file: " + input_video_path);
-    }
-
-    // 2. Get video properties (same as before)
+    } // 2. Get video properties (same as before)
     int frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
     int frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
     double fps = cap.get(cv::CAP_PROP_FPS);
-    int fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
+    int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v'); // MP4V codec - more compatible than H264
 
     // 3. Create the MOG2 background subtractor
     cv::Ptr<cv::BackgroundSubtractorMOG2> p_mog2 = cv::createBackgroundSubtractorMOG2(history, var_threshold, detect_shadows);
 
     // 4. Create the output video writer (for the foreground mask - single channel)
     cv::VideoWriter writer(output_video_path, fourcc, fps, cv::Size(frame_width, frame_height), false); // isColor = false for mask
-    if (!writer.isOpened()) {
+    if (!writer.isOpened())
+    {
         cap.release();
         throw std::runtime_error("Error: Could not create output video file: " + output_video_path);
     }
@@ -97,9 +101,11 @@ bool process_video_bg_subtract_mog2(const std::string& input_video_path,
     cv::Mat frame;
     cv::Mat fg_mask;
     int frame_count = 0;
-    while (true) {
+    while (true)
+    {
         cap >> frame;
-        if (frame.empty()) {
+        if (frame.empty())
+        {
             break;
         }
 
@@ -111,7 +117,8 @@ bool process_video_bg_subtract_mog2(const std::string& input_video_path,
         writer.write(fg_mask);
 
         frame_count++;
-        if (frame_count % 100 == 0) {
+        if (frame_count % 100 == 0)
+        {
             std::cout << "Processed " << frame_count << " frames..." << std::endl;
         }
     }
@@ -123,4 +130,4 @@ bool process_video_bg_subtract_mog2(const std::string& input_video_path,
     writer.release();
 
     return true;
-} 
+}

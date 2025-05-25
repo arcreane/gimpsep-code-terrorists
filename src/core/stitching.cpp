@@ -1,10 +1,12 @@
 #include "stitching.hpp"
 #include <opencv2/imgcodecs.hpp> // For cv::imread
-#include <stdexcept>            // For std::runtime_error
-#include <iostream>             // For status messages
+#include <stdexcept>             // For std::runtime_error
+#include <iostream>              // For status messages
 
-cv::Stitcher::Status stitch_images(const std::vector<std::string>& image_paths, cv::Mat& output_pano) {
-    if (image_paths.size() < 2) {
+cv::Stitcher::Status stitch_images(const std::vector<std::string> &image_paths, cv::Mat &output_pano)
+{
+    if (image_paths.size() < 2)
+    {
         throw std::runtime_error("Stitching requires at least two input images.");
     }
 
@@ -12,9 +14,11 @@ cv::Stitcher::Status stitch_images(const std::vector<std::string>& image_paths, 
     input_images.reserve(image_paths.size()); // Reserve space for efficiency
 
     std::cout << "Loading images for stitching..." << std::endl;
-    for (const std::string& path : image_paths) {
+    for (const std::string &path : image_paths)
+    {
         cv::Mat img = cv::imread(path, cv::IMREAD_COLOR);
-        if (img.empty()) {
+        if (img.empty())
+        {
             // You might want to skip the problematic image or throw an error
             // Throwing an error is safer to indicate a definite problem.
             throw std::runtime_error("Failed to load image for stitching: " + path);
@@ -36,17 +40,19 @@ cv::Stitcher::Status stitch_images(const std::vector<std::string>& image_paths, 
     return status; // Return the status code
 }
 
-std::string stitcher_status_to_string(cv::Stitcher::Status status) {
-    switch (status) {
-        case cv::Stitcher::OK:
-            return "OK (Success)";
-        case cv::Stitcher::ERR_NEED_MORE_IMGS:
-            return "Error: Need more images";
-        case cv::Stitcher::ERR_HOMOGRAPHY_EST_FAIL:
-            return "Error: Homography estimation failed";
-        case cv::Stitcher::ERR_CAMERA_PARAMS_ADJUST_FAIL:
-            return "Error: Camera parameter adjustment failed";
-        default:
-            return "Error: Unknown stitching error";
+std::string stitcher_status_to_string(cv::Stitcher::Status status)
+{
+    switch (status)
+    {
+    case cv::Stitcher::OK:
+        return "OK (Success)";
+    case cv::Stitcher::ERR_NEED_MORE_IMGS:
+        return "Error: Need more images";
+    case cv::Stitcher::ERR_HOMOGRAPHY_EST_FAIL:
+        return "Error: Homography estimation failed";
+    case cv::Stitcher::ERR_CAMERA_PARAMS_ADJUST_FAIL:
+        return "Error: Camera parameter adjustment failed";
+    default:
+        return "Error: Unknown stitching error";
     }
-} 
+}
