@@ -27,6 +27,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/advanced
     ${OpenCV_INCLUDE_DIRS}
     /opt/homebrew/include/opencv4
+    /opt/homebrew/Cellar/opencv/4.11.0_1/include/opencv4
 )
 
 # Core image processing sources
@@ -41,8 +42,7 @@ set(CORE_SOURCES
 
 # CLI interface sources
 set(CLI_SOURCES
-    src/cli/cli_parser.cpp
-    src/cli/cli_interface.cpp
+    src/cli/menu_interface.cpp
 )
 
 # Advanced processing sources
