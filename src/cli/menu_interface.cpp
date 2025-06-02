@@ -12,6 +12,8 @@
 #include "core/canny_processor.hpp"
 #include "core/stitch_processor.hpp"
 #include "advanced/face_detection.hpp"
+#include "advanced/object_detection.hpp"
+#include "advanced/video_processing.hpp"
 
 namespace ai_slop {
 
@@ -25,6 +27,8 @@ MenuInterface::MenuInterface() : running(true) {
         {"5", [this]() { executeOperation("canny", collectCannyParams()); }},
         {"6", [this]() { executeOperation("stitch", collectStitchParams()); }},
         {"7", [this]() { executeOperation("face", collectFaceDetectionParams()); }},
+        {"8", [this]() { executeOperation("object", collectObjectDetectionParams()); }},
+        {"9", [this]() { executeOperation("video_grayscale", collectVideoGrayscaleParams()); }},
         {"h", [this]() { showHelp(); }},
         {"q", [this]() { running = false; }}
     };
@@ -37,7 +41,9 @@ MenuInterface::MenuInterface() : running(true) {
         {"brightness", "Adjust the brightness of an image"},
         {"canny", "Perform Canny edge detection on an image"},
         {"stitch", "Stitch multiple images together"},
-        {"face", "Detect faces in an image"}
+        {"face", "Detect faces in an image"},
+        {"object", "Detect objects in an image using YOLO"},
+        {"video_grayscale", "Convert a video to grayscale"}
     };
 }
 
@@ -68,6 +74,8 @@ void MenuInterface::showMainMenu() {
     std::cout << "5. Canny Edge Detection\n";
     std::cout << "6. Stitch Images\n";
     std::cout << "7. Face Detection\n";
+    std::cout << "8. Object Detection\n";
+    std::cout << "9. Video Grayscale\n";
     std::cout << "h. Show Help\n";
     std::cout << "q. Quit\n\n";
 }
@@ -100,6 +108,12 @@ void MenuInterface::showHelp(const std::string& operation) {
                 std::cout << "Detects faces in the input image using Haar cascades.\n";
                 std::cout << "Scale factor determines how much the image size is reduced at each scale.\n";
                 std::cout << "Min neighbors determines how many neighbors each candidate rectangle should have.\n";
+            } else if (operation == "object") {
+                std::cout << "Detects objects in the input image using YOLO.\n";
+                std::cout << "Confidence threshold determines the minimum confidence score for detection.\n";
+                std::cout << "NMS threshold determines the threshold for non-maximum suppression.\n";
+            } else if (operation == "video_grayscale") {
+                std::cout << "Converts a video to grayscale.\n";
             }
         }
     }
@@ -246,10 +260,39 @@ OperationParams MenuInterface::collectFaceDetectionParams() {
     return params;
 }
 
+OperationParams MenuInterface::collectObjectDetectionParams() {
+    OperationParams params = collectBasicParams();
+    
+    // Get confidence threshold (0.1 to 1.0)
+    params.options["confidence"] = std::to_string(
+        getDoubleInput("Enter confidence threshold (0.1-1.0): ", 0.1, 1.0)
+    );
+    
+    // Get NMS threshold (0.1 to 1.0)
+    params.options["nms"] = std::to_string(
+        getDoubleInput("Enter NMS threshold (0.1-1.0): ", 0.1, 1.0)
+    );
+    
+    return params;
+}
+
+OperationParams MenuInterface::collectVideoGrayscaleParams() {
+    OperationParams params;
+    params.input_path = getStringInput("Enter input video path: ");
+    params.output_path = getStringInput("Enter output video path: ");
+    return params;
+}
+
 void MenuInterface::executeOperation(const std::string& operation, const OperationParams& params) {
-    printProgress("Processing image...");
-    processImage(operation, params);
-    printSuccess("Image processed successfully!");
+    printProgress("Processing...");
+    
+    if (operation == "video_grayscale") {
+        processVideo(operation, params);
+    } else {
+        processImage(operation, params);
+    }
+    
+    printSuccess("Processing completed successfully!");
 }
 
 void MenuInterface::processImage(const std::string& operation, const OperationParams& params) {
@@ -337,6 +380,24 @@ void MenuInterface::processImage(const std::string& operation, const OperationPa
         
         output_image = detector.process(input_image);
     }
+    else if (operation == "object") {
+        auto it1 = params.options.find("confidence");
+        auto it2 = params.options.find("nms");
+        if (it1 == params.options.end() || it2 == params.options.end()) {
+            throw std::runtime_error("Missing object detection parameters");
+        }
+        
+        float confidence = std::stof(it1->second);
+        float nms = std::stof(it2->second);
+        
+        // Use the YOLO model files from the models directory
+        std::string config_path = "../models/yolo/yolov4-tiny.cfg";
+        std::string weights_path = "../models/yolo/yolov4-tiny.weights";
+        std::string names_path = "../models/yolo/coco.names";
+        
+        ObjectDetector detector(config_path, weights_path, names_path, confidence, nms);
+        output_image = detector.process(input_image);
+    }
     else {
         throw std::runtime_error("Unknown operation: " + operation);
     }
@@ -344,6 +405,14 @@ void MenuInterface::processImage(const std::string& operation, const OperationPa
     // Save the output image
     if (!cv::imwrite(params.output_path, output_image)) {
         throw std::runtime_error("Failed to save output image: " + params.output_path);
+    }
+}
+
+void MenuInterface::processVideo(const std::string& operation, const OperationParams& params) {
+    if (operation == "video_grayscale") {
+        process_video_grayscale(params.input_path, params.output_path);
+    } else {
+        throw std::runtime_error("Unknown video operation: " + operation);
     }
 }
 

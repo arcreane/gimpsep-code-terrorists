@@ -48,10 +48,13 @@ private:
     OperationParams collectCannyParams();
     OperationParams collectStitchParams();
     OperationParams collectFaceDetectionParams();
+    OperationParams collectObjectDetectionParams();
+    OperationParams collectVideoGrayscaleParams();
 
     // Operation execution
     void executeOperation(const std::string& operation, const OperationParams& params);
     void processImage(const std::string& operation, const OperationParams& params);
+    void processVideo(const std::string& operation, const OperationParams& params);
 
     // Helper functions
     bool validateInputPath(const std::string& path);

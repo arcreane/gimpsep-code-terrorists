@@ -56,8 +56,8 @@ std::vector<cv::Mat> ObjectDetector::preprocess(const cv::Mat& input) {
     return outputs;
 }
 
-std::vector<cv::Rect> ObjectDetector::postprocess(const std::vector<cv::Mat>& outputs,
-                                                const cv::Size& original_size) {
+std::vector<ObjectDetector::Detection> ObjectDetector::postprocess(const std::vector<cv::Mat>& outputs,
+                                                                const cv::Size& original_size) {
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<int> classIds;
@@ -90,9 +90,13 @@ std::vector<cv::Rect> ObjectDetector::postprocess(const std::vector<cv::Mat>& ou
     std::vector<int> indices;
     cv::dnn::NMSBoxes(boxes, confidences, confidence_threshold_, nms_threshold_, indices);
 
-    std::vector<cv::Rect> result;
+    std::vector<Detection> result;
     for (int idx : indices) {
-        result.push_back(boxes[idx]);
+        Detection det;
+        det.box = boxes[idx];
+        det.class_id = classIds[idx];
+        det.confidence = confidences[idx];
+        result.push_back(det);
     }
 
     return result;
@@ -104,15 +108,33 @@ cv::Mat ObjectDetector::process(const cv::Mat& input) {
     // Get network outputs
     std::vector<cv::Mat> outputs = preprocess(input);
 
-    // Process outputs to get bounding boxes
-    std::vector<cv::Rect> boxes = postprocess(outputs, input.size());
+    // Process outputs to get detections
+    std::vector<Detection> detections = postprocess(outputs, input.size());
 
     // Draw results
     cv::Mat result = input.clone();
-    for (const auto& box : boxes) {
-        cv::rectangle(result, box, cv::Scalar(0, 255, 0), 2);
-        cv::putText(result, class_names_[box.x], cv::Point(box.x, box.y - 5),
-                   cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 2);
+    for (const auto& det : detections) {
+        // Draw rectangle
+        cv::rectangle(result, det.box, cv::Scalar(0, 255, 0), 2);
+        
+        // Prepare label text
+        std::string label = class_names_[det.class_id] + ": " + cv::format("%.2f", det.confidence);
+        
+        // Get text size
+        int base_line;
+        cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &base_line);
+        
+        // Draw filled rectangle background for label
+        cv::rectangle(result,
+                     cv::Point(det.box.x, det.box.y - label_size.height - base_line),
+                     cv::Point(det.box.x + label_size.width, det.box.y),
+                     cv::Scalar(0, 255, 0), // Background color (Green)
+                     cv::FILLED);
+        
+        // Draw label text
+        cv::putText(result, label,
+                   cv::Point(det.box.x, det.box.y - base_line),
+                   cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 1); // Text color (Black)
     }
 
     return result;

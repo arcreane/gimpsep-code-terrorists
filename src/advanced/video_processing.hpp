@@ -1,5 +1,4 @@
-#ifndef AI_SLOP_VIDEO_PROCESSING_HPP
-#define AI_SLOP_VIDEO_PROCESSING_HPP
+#pragma once
 
 #include <string>
 #include <opencv2/core.hpp>
@@ -44,6 +43,8 @@ public:
      */
     std::string getName() const override { return "VideoProcessor"; }
 
+    virtual ~VideoProcessor() = default;
+
 private:
     std::string input_path_;
     std::string output_path_;
@@ -66,7 +67,7 @@ private:
  * @return bool True if processing was successful and the video was saved, false otherwise.
  * @throws std::runtime_error if the input video cannot be opened or the output video cannot be created.
  */
-bool process_video_grayscale(const std::string& input_video_path, const std::string& output_video_path);
+void process_video_grayscale(const std::string& input_video_path, const std::string& output_video_path);
 
 /**
  * @brief Performs background subtraction on a video using the MOG2 algorithm.
@@ -90,6 +91,4 @@ bool process_video_bg_subtract_mog2(const std::string& input_video_path,
 
 // Add other video processing functions here later (e.g., applying different filters, stabilization, etc.)
 
-} // namespace ai_slop
-
-#endif // AI_SLOP_VIDEO_PROCESSING_HPP 
+} // namespace ai_slop 

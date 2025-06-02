@@ -25,6 +25,8 @@
 // Include CLI interface
 #include "cli/menu_interface.hpp"
 
+#include "gui/main_window.hpp"
+
 using ai_slop::BrightnessProcessor;
 using ai_slop::MorphologyProcessor;
 using ai_slop::ResizeProcessor;
@@ -40,15 +42,12 @@ using ai_slop::MenuInterface;
  * @return int Exit code (0 for success, 1 for errors).
  */
 int main(int argc, char** argv) {
-    try {
-        MenuInterface menu;
+    if (ai_slop::MainWindow::want_gui(argc, argv)) {
+        ai_slop::MainWindow window;
+        window.run();
+    } else {
+        ai_slop::MenuInterface menu;
         menu.run();
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    } catch (...) {
-        std::cerr << "An unexpected error occurred." << std::endl;
-        return 1;
     }
     return 0;
 } 

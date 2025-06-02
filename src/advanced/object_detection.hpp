@@ -54,10 +54,16 @@ private:
     int input_width_;
     int input_height_;
 
+    struct Detection {
+        cv::Rect box;
+        int class_id;
+        float confidence;
+    };
+
     void loadClassNames(const std::string& names_path);
     std::vector<cv::Mat> preprocess(const cv::Mat& input);
-    std::vector<cv::Rect> postprocess(const std::vector<cv::Mat>& outputs,
-                                    const cv::Size& original_size);
+    std::vector<Detection> postprocess(const std::vector<cv::Mat>& outputs,
+                                     const cv::Size& original_size);
 };
 
 } // namespace ai_slop
